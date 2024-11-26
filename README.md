@@ -13,3 +13,23 @@ Still at a big WIP stage for now, but for now I've working:
 
 
 ## Roadmap
+
+- Default rendering
+- Circuit rendering
+- Floor Tile rendering
+- Space floor rendering if at least one space-only entity is present
+- background (planet / space / chessboard / none)
+- scaling down to size
+- Altmode rendering
+- Quality
+- Adding BP name
+- Managing books
+- Optimisation
+- Cleaning
+- Commenting
+- Optimisation
+- Cleaning
+- Commenting
+- Optimisation
+- Cleaning
+- Commenting
