@@ -1,0 +1,1 @@
+const luaEnv = luainjs.createEnv();

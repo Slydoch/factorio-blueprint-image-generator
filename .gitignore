@@ -1,0 +1,7 @@
+factorio/*
+!factorio/data/
+factorio/data/*
+!factorio/data/data.json
+node_modules/
+package-lock.json
+.vscode/settings.json

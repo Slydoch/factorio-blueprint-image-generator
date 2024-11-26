@@ -1,0 +1,29 @@
+{
+  "name": "fbv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Slydoch/fbv.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Slydoch/fbv/issues"
+  },
+  "homepage": "https://github.com/Slydoch/fbv#readme",
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "jimp": "^1.6.0",
+    "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
+}
