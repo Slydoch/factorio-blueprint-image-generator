@@ -58,8 +58,6 @@ class Pipe extends Entity {
         rotation = 0;
       }
       pipe.spriteName = spriteName;
-      console.log(spriteName, rotation);
-      
       switch (spriteName) {
         case "pipe-straight":
           switch (rotation) {
@@ -193,9 +191,10 @@ class Pipe extends Entity {
   getGraphics(factorioElement, element) {
     return factorioElement.pictures[element.spriteName];
   }
-  render(element, factorioElement, x, y, img, bp) {
+  render(element, factorioElement, x, y, bp) {
     const bounds = this.getBounds(factorioElement);
     const graphic = this.getGraphics(factorioElement, element);
+    graphic.filename = graphic.filename.replace(/__/g, "");
     const shift = {
       x: graphic.shift ? graphic.shift[0] : 0,
       y: graphic.shift ? graphic.shift[1] : 0
@@ -213,7 +212,8 @@ class Pipe extends Entity {
       x: destSize.x / 2 - srcSize.x / 2 + bounds.x1,
       y: destSize.y / 2 - srcSize.y / 2 + bounds.y1
     };
-    img.push([bp.graphics_sets[`${element.name}.${graphic.filename}`], x + destinationOffset.x + shift.x * 2, y + destinationOffset.y + shift.y * 2, {
+    const layer = graphic.draw_as_shadow ? bp.renderLayers.shadows : bp.renderLayers.low;
+    layer.push([bp.graphics_sets[`${element.name}.${graphic.filename}`], x + destinationOffset.x + shift.x * 2, y + destinationOffset.y + shift.y * 2, {
       mode: Jimp.BLEND_SOURCE_OVER,
       opacitySource: 1,
       opacityDest: 1

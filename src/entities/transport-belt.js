@@ -1,6 +1,8 @@
 import Entity from "./entity.js";
 import FactorioUtil from "../factorio-util.js";
 import { Jimp } from "jimp";
+import Logger from "../logger.js";
+const logger = new Logger("entity.transport-belt");
 
 class TransportBelt extends Entity {
   constructor() {
@@ -49,8 +51,10 @@ class TransportBelt extends Entity {
     for (let i = 0; i < data.length; i++) {
       const element = data[i];
       const entity = factorioData[element.name];
-      
-      if (entity.type == "transport-belt") {
+      if (!entity) {
+        continue;
+      }
+      if (entity.type == "transport-belt" || (entity.type == "underground-belt" && element.type == "output")) {
         element.direction = element.direction || 0;
         this.belts.push(element);
       }
@@ -98,7 +102,7 @@ class TransportBelt extends Entity {
       let spriteId = this.models["south-north"];
       switch (direction) {
         case FactorioUtil._directions.north:
-          if (belt.neighbours[this.neighboursIndex["south"]].direction === FactorioUtil._directions["north"]) {
+          if (belt.forceStraight || belt.neighbours[this.neighboursIndex["south"]].direction === FactorioUtil._directions["north"]) {
             spriteId = this.models["south-north"];
           } else if (
             belt.neighbours[this.neighboursIndex["east"]].direction === FactorioUtil._directions["west"] &&
@@ -115,7 +119,7 @@ class TransportBelt extends Entity {
           }
           break;
         case FactorioUtil._directions.east:
-          if (belt.neighbours[this.neighboursIndex["west"]].direction === FactorioUtil._directions["east"]) {
+          if (belt.forceStraight || belt.neighbours[this.neighboursIndex["west"]].direction === FactorioUtil._directions["east"]) {
             spriteId = this.models["west-east"];
           } else if (
             belt.neighbours[this.neighboursIndex["north"]].direction === FactorioUtil._directions["south"] &&
@@ -132,7 +136,7 @@ class TransportBelt extends Entity {
           }
           break;
         case FactorioUtil._directions.south:
-          if (belt.neighbours[this.neighboursIndex["north"]].direction === FactorioUtil._directions["south"]) {
+          if (belt.forceStraight || belt.neighbours[this.neighboursIndex["north"]].direction === FactorioUtil._directions["south"]) {
             spriteId = this.models["north-south"];
           } else if (
             belt.neighbours[this.neighboursIndex["east"]].direction === FactorioUtil._directions["west"] &&
@@ -149,7 +153,7 @@ class TransportBelt extends Entity {
           }
           break;
         case FactorioUtil._directions.west:
-          if (belt.neighbours[this.neighboursIndex["east"]].direction === FactorioUtil._directions["west"]) {
+          if (belt.forceStraight || belt.neighbours[this.neighboursIndex["east"]].direction === FactorioUtil._directions["west"]) {
             spriteId = this.models["east-west"];
           } else if (
             belt.neighbours[this.neighboursIndex["north"]].direction === FactorioUtil._directions["south"] &&
@@ -173,6 +177,9 @@ class TransportBelt extends Entity {
   async customPreload(entity, element, graphics_sets) {
     let graphics = [];
     graphics = this.getGraphicsForPreload(entity, element);
+    if(!Array.isArray(graphics)) {
+      graphics = [graphics];
+    }
     for (let j = 0; j < graphics.length; j++) {
       const graphic = graphics[j];
 
@@ -199,17 +206,13 @@ class TransportBelt extends Entity {
       }
     }
   }
-  render(element, factorioElement, x, y, img, bp) {
-    this.k = `.${element.spriteId}`;
-    super.render(element, factorioElement, x, y, img, bp);
-  }
 
-  subRender(element, factorioElement, x, y, img, bp) {
+  subRender(element, factorioElement, x, y, bp) {
     const spriteName = Object.keys(this.models)[element.spriteId].split("-");
     const from = spriteName[0];
     const to = spriteName[1];
     const bounds = this.getBounds(factorioElement);
-    const graphic = this.getGraphics(factorioElement, element)[0];
+    const graphic = this.getGraphics(factorioElement, element);
     const srcSize = {
       x: graphic.width || graphic.size,
       y: graphic.height || graphic.size
@@ -234,8 +237,9 @@ class TransportBelt extends Entity {
       x: (to == "east") ? 64 : (to == "west") ? -64 : 0,
       y: (to == "south") ? 64 : (to == "north") ? -64 : 0
     };
-    if (element.neighbours[this.neighboursIndex[from]].direction != FactorioUtil._reverseDirections[from]) {
-      img.push([bp.graphics_sets[`${element.name}.${graphic.filename}.${modelA}`], x + destinationOffset.x + shiftA.x, y + destinationOffset.y + shiftA.y, {
+    if ((element.drawIn !== false) && element.neighbours[this.neighboursIndex[from]].direction != FactorioUtil._reverseDirections[from]) {
+      const layer = bp.renderLayers.mid;
+      layer.push([bp.graphics_sets[`${element.name}.${graphic.filename}.${modelA}`], x + destinationOffset.x + shiftA.x, y + destinationOffset.y + shiftA.y, {
         mode: Jimp.BLEND_SOURCE_OVER,
         opacitySource: 1,
         opacityDest: 1
@@ -244,15 +248,20 @@ class TransportBelt extends Entity {
         factorioElement,
         path: `${element.name}.${graphic.filename}.${modelA}`
       }]);
-      return;
     }
     const neighbourTo = element.neighbours[this.neighboursIndex[to]];
-    if (element.entity_number === 10) {
-      console.log(element, to, this.neighboursIndex[to], FactorioUtil._directions[to]);
-    }
     const neighbourToFrom = neighbourTo.entity_number ? Object.keys(this.models)[neighbourTo.spriteId].split("-")[0] : false;
-    if (neighbourTo.direction === -1 || (neighbourToFrom && FactorioUtil._directions[neighbourToFrom] != FactorioUtil._reverseDirections[to])) {
-      img.push([bp.graphics_sets[`${element.name}.${graphic.filename}.${modelB}`], x + destinationOffset.x + shiftB.x, y + destinationOffset.y + shiftB.y, {
+    if (
+      (element.drawOut !== false) && 
+      (
+        neighbourTo.direction === -1 ||
+        (
+          neighbourToFrom && FactorioUtil._directions[neighbourToFrom] != FactorioUtil._reverseDirections[to]
+        )
+      )
+    ) {
+      const layer = bp.renderLayers.mid;
+      layer.push([bp.graphics_sets[`${element.name}.${graphic.filename}.${modelB}`], x + destinationOffset.x + shiftB.x, y + destinationOffset.y + shiftB.y, {
         mode: Jimp.BLEND_SOURCE_OVER,
         opacitySource: 1,
         opacityDest: 1
@@ -261,12 +270,12 @@ class TransportBelt extends Entity {
         factorioElement,
         path: `${element.name}.${graphic.filename}.${modelB}`
       }]);
-      return;
     }
   }
 
   getGraphics(factorioElement, element) {
-    return [factorioElement.belt_animation_set.animation_set];
+    this.k = `.${element.spriteId}`;
+    return factorioElement.belt_animation_set.animation_set;
   }
 }
 

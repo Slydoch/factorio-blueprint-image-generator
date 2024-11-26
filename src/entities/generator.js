@@ -9,6 +9,9 @@ class Generator extends Entity {
   async customPreload(entity, element, graphics_sets) {
     let graphics = [];
     graphics = this.getGraphicsForPreload(entity, element);
+    if(!Array.isArray(graphics)) {
+      graphics = [graphics];
+    }
     for (let j = 0; j < graphics.length; j++) {
       const graphic = graphics[j];
       
@@ -55,7 +58,7 @@ class Generator extends Entity {
     ];
   }
   getGraphics(factorioElement, element) {
-    return element.direction === 2
+    return element.direction === 4
       ? factorioElement.horizontal_animation.layers
       : factorioElement.vertical_animation.layers;
   }
@@ -66,7 +69,7 @@ class Generator extends Entity {
     switch (element.direction) {
       case 0:
         break;
-      case 2:
+      case 4:
         newPosition[0] = position[1];
         newPosition[1] = position[0];
         break;
@@ -75,18 +78,16 @@ class Generator extends Entity {
   }
 
 
-  subRender(element, factorioElement, x, y, img, bp) {
+  subRender(element, factorioElement, x, y, bp) {
     const pipe_covers = factorioElement.fluid_box.pipe_covers;
     const pipe_connections = factorioElement.fluid_box.pipe_connections;
     const bounds = this.getBounds(factorioElement);
     // render pipe connections
     for (let i = 0; i < pipe_connections.length; i++) {
       const pipe_connection = pipe_connections[i];
-      console.log(pipe_connection);
-      
       let direction = pipe_connection.direction;
-      if (element.direction === 2) {
-        direction += 4;
+      if (element.direction !== 0) {
+        direction += 12;
         direction %= 16;
       }
       const position = this.applyRotation(element, pipe_connection);
@@ -144,10 +145,10 @@ class Generator extends Entity {
           x: destSize.x / 2 - srcSize.x / 2 + bounds.x1 + (position[0] + offset.x)*64,
           y: destSize.y / 2 - srcSize.y / 2 + bounds.y1 + (position[1] + offset.y)*64
         };
-        const opacity = graphic.draw_as_shadow ? 0.5 : 1;
-        img.push([bp.graphics_sets[`${element.name}.${graphic.filename}`], x + destinationOffset.x + shift.x, y + destinationOffset.y + shift.y, {
+        const layer = graphic.draw_as_shadow ? bp.renderLayers.shadows : bp.renderLayers.low;
+        layer.push([bp.graphics_sets[`${element.name}.${graphic.filename}`], x + destinationOffset.x + shift.x, y + destinationOffset.y + shift.y, {
           mode: Jimp.BLEND_SOURCE_OVER,
-          opacitySource: opacity,
+          opacitySource: 1,
           opacityDest: 1
         }, {element, factorioElement, path: `${element.name}.${graphic.filename}`}]);
       }

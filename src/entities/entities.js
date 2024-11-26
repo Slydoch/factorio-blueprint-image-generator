@@ -6,6 +6,8 @@ import Container from "./container.js";
 import StorageTank from "./storage-tank.js";
 import TransportBelt from "./transport-belt.js";
 import Generator from "./generator.js";
+import PipeToGround from "./pipe-to-ground.js";
+import UndergroundBelt from "./underground-belt.js";
 
 
 export default {
@@ -16,5 +18,7 @@ export default {
   container: new Container(),
   "storage-tank": new StorageTank(),
   "transport-belt": new TransportBelt(),
-  generator: new Generator()
+  generator: new Generator(),
+  "pipe-to-ground": new PipeToGround(),
+  "underground-belt": new UndergroundBelt()
 };
