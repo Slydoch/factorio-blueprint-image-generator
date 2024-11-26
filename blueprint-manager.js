@@ -3,6 +3,7 @@ import { SANS_12_BLACK } from "jimp/fonts";
 import Preprocessor from "./src/preprocessor.js";
 import Entities from "./src/entities/entities.js";
 import Logger from "./src/logger.js";
+import Wires from "./src/wires.js";
 const logger = new Logger();
 const Types = Object.keys(Entities);
 
@@ -13,6 +14,7 @@ class BlueprintManager {
     this.entities = [];
     this.addedElement = [];
     this.preprocessBpData();
+    this.wiresManager = new Wires(this, this.bpData.blueprint.wires);
     this.minX = 1.797693134862315E+308;
     this.minY = 1.797693134862315E+308;
     this.maxX = -1.797693134862315E+308;
@@ -22,15 +24,17 @@ class BlueprintManager {
       shadows: [],
       low: [],
       mid: [],
-      high: [],
-      debug: []
+      high: []
     };
     this.font = null;
     this.undoneElements = [];
     this.graphics_sets = {};
     this.pipes = [];
     logger.log('BlueprintManager created');
-    loadFont(SANS_12_BLACK).then(font => {
+    this.wiresManager.preloadImages().then(() => {
+      logger.log('Wires preloaded');
+      return loadFont(SANS_12_BLACK);
+    }).then(font => {
       logger.log('Font loaded');
       this.font = font;
       return this.preloadImages();
@@ -168,8 +172,8 @@ class BlueprintManager {
   }
   calculateSize() {
     this.calculateMinAndMax();
-    this.size.x = (this.maxX - this.minX + 1 + 4) * 64;
-    this.size.y = (this.maxY - this.minY + 1 + 4) * 64;
+    this.size.x = (this.maxX - this.minX + 1 + 5) * 64;
+    this.size.y = (this.maxY - this.minY + 1 + 5) * 64;
   }
 
   prepare() {
@@ -233,14 +237,14 @@ class BlueprintManager {
     for (let i = 0; i < this.renderLayers.shadows.length; i++) {
       const graphic = this.renderLayers.shadows[i];
       graphic[3].blendMode = BlendMode.DARKEN;
-      shadows.composite(graphic[0], graphic[1], graphic[2], graphic[3]);
+      shadows.composite(graphic[0], graphic[1] + 128, graphic[2] + 128, graphic[3]);
     }
     logger.log('Rendering entity images');
     const layers = ["low", "mid", "high"];
     for(let l = 0; l < layers.length; l++) {
       for (let i = 0; i < this.renderLayers[layers[l]].length; i++) {
         const graphic = this.renderLayers[layers[l]][i];
-        img.composite(graphic[0], graphic[1], graphic[2], graphic[3]);
+        img.composite(graphic[0], graphic[1] + 128, graphic[2] + 128, graphic[3]);
       }
     }
 
@@ -259,8 +263,8 @@ class BlueprintManager {
   renderDebug(img) {
     for (let i = 0; i < this.bpData.blueprint.entities.length; i++) {
       const element = this.bpData.blueprint.entities[i];
-      const x = (element.position.x - this.minX + 2) * 64;
-      const y = (element.position.y - this.minY + 2) * 64;
+      const x = (element.position.x - this.minX + 2) * 64 + 128;
+      const y = (element.position.y - this.minY + 2) * 64 + 128;
       this.renderDebugElement(img, element, x, y);
     }
   }

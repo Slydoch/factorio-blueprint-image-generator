@@ -8,6 +8,7 @@ import TransportBelt from "./transport-belt.js";
 import Generator from "./generator.js";
 import PipeToGround from "./pipe-to-ground.js";
 import UndergroundBelt from "./underground-belt.js";
+import ElectricPole from "./electric-pole.js";
 
 
 export default {
@@ -20,5 +21,6 @@ export default {
   "transport-belt": new TransportBelt(),
   generator: new Generator(),
   "pipe-to-ground": new PipeToGround(),
-  "underground-belt": new UndergroundBelt()
+  "underground-belt": new UndergroundBelt(),
+  "electric-pole": new ElectricPole()
 };
